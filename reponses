@@ -1,0 +1,80 @@
+exo1
+packets 1000o
+propa 10ms
+C 1mb/s
+interval 5ms
+
+3) Un lien full-duplex est un lien sur lequel les deux interlocuteurs peuvent communiquer en même temps.
+Le lien est bidirectionnel.
+Un buffer qui applique une politique de type Drop Tail stoque des packets jusqu'a ne plus avoir de place
+et "drop" laisse tomber les nouveaux paquets lorsqu'il est plein jusqu'a avoir de la place à nouveau.
+
+4)
+8L/C + Tprop = 8000/1*10e6 + 10*10e-3 = 18*10e-3 secondes soit 18ms
+
+5)
+6) Le packet numéro 10 `cat out.tr | grep "10 10` est généré à 0.55 s
++ 0.55 0 1 cbr 1000 ------- 1 0.0 1.0 10 10
+et il est émis à 0.58 ms
+- 0.58 0 1 cbr 1000 ------- 1 0.0 1.0 10 10
+
+7) Le temps d'attente du packet 10 est (0.58 - 0.55) = 0.03 s
+Le temps d'émission est 0.598 - 0.58 = 0.018 s
+
+8) Le délai de bout en bout est 0.598 - 0.55 = 0.048 s
+
+
+Exo2
+
+4) Un packet a deux numéros sur la trame car le packet passe par deux liens au cours de son transfert.
+Il garde le numéro du segment et prends un nouvel ID, pareil pour les pertes
+5) Les packets TCP ont une taille de 1040 octets, 1000 octets de données et 4 octets de header 20TCP + 20IP
+6) Non on ne peux pas lire le délai d'émission à partir de la trace car la trace nous donne la some de l'émission et de la propagation
+7) `cat out.tr | grep " 100"`
+8) temps d'attente entre 0 et 2 : 0 packet 93
+temps d'attente entre 2 et 3 : 0.021153
+9) Non, les délais d'attentes peuvent différer en fonction du nombre de packets à transmettre dans le buffer
+
+Exo3
+
+3) Nous pouvons récupérer le nombre de packets UDP émis en faisant une recherche avec grep sur les "+" et les "cbr"
+Ensuite, nous cherchons les "d" et les "cbr" et nous avons (d(cbr) / +(cbr)) = taux de perte
+
+4) awk -v t1=1 -v t2=2 -f awk_script out.tr
+1-2 = 0/216
+2-3 = 6/126 0.047619%
+3-4 = 1/126 0.00793651%
+
+#!/bin/awk -f
+
+# les commentaires dans un script awk se trouvent apr`es un caract`ere #
+# attention, la variable d’environnement LC_NUMERIC doit ^etre fix´ee `a ’.’
+BEGIN {
+}
+{
+    event = $1;
+    time = $2; # en secondes
+    src_H2 = $3;
+    dst_H2= $4;
+    type = $5;
+    size = $6; # en octets
+    idflow = $8;
+    src_H3=$9;
+    dst_H3=$10;
+    idseq=$11;
+    idpaquet = $12;
+    ######## VOTRE CODE ICI ########
+    if ( event == "d" && type == "cbr" && time >= t1 && time <= t2) {
+        loss++;
+    }
+    if( event == "+" && type == "cbr" && src_H2 == "1" && time >= t1 && time <= t2) {
+        pkt_send++;
+    }
+    ###############################
+}
+END {
+    printf("le taux de perte vaut %g, en effet %d paquets ont ete perdus parmi les %d envoyes\n", loss/pkt_send, loss, pkt_send);
+}
+
+
+5) 

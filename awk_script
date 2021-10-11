@@ -1,0 +1,30 @@
+#!/bin/awk -f
+
+# les commentaires dans un script awk se trouvent apr`es un caract`ere #
+# attention, la variable d’environnement LC_NUMERIC doit ^etre fix´ee `a ’.’
+BEGIN {
+}
+{
+    event = $1;
+    time = $2; # en secondes
+    src_H2 = $3;
+    dst_H2= $4;
+    type = $5;
+    size = $6; # en octets
+    idflow = $8;
+    src_H3=$9;
+    dst_H3=$10;
+    idseq=$11;
+    idpaquet = $12;
+    ######## VOTRE CODE ICI ########
+    if ( event == "d" && type == "cbr" && time >= t1 && time <= t2) {
+        loss++;
+    }
+    if( event == "+" && type == "cbr" && src_H2 == "1" && time >= t1 && time <= t2) {
+        pkt_send++;
+    }
+    ###############################
+}
+END {
+    printf("le taux de perte vaut %g, en effet %d paquets ont ete perdus parmi les %d envoyes\n", loss/pkt_send, loss, pkt_send);
+}
